@@ -1,6 +1,9 @@
-from pyramid.view import view_config
+from pyramid.response import Response
 
 
-@view_config(route_name='home', renderer='templates/mytemplate.pt')
-def my_view(request):
-    return {'project': 'learning-journal'}
+def home_page(request):
+    return Response("This is my first view!")
+
+
+def includeme(config):
+    config.add_view(home_page, route_name='home')
