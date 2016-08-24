@@ -4,4 +4,5 @@ def includeme(config):
     config.add_route('home', '/')
 
 
-    # config.add_route('new-entry', '/new-entry')
+    # config.add_route('new-entry', '/new-entry') 
+    # config.add_route('detail', '/detail/{id:\d+}')
