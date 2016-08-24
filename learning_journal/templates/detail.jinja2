@@ -1,0 +1,8 @@
+{% extends "layout.jinja2" %}
+{% block body %}
+<h1>{{ title }}</h1>
+<p>{{ creation_date }}</p>
+<hr>
+<p>{{ body | safe }}</p>
+<a class="btn btn-default" href="{{ request.route_url('edit', id=id) }}" role="button">Edit <i class="fa fa-pencil"></i></a>
+{% endblock %}
