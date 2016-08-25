@@ -6,7 +6,9 @@
             <h2><a href="{{ request.route_url('detail', id=entry.id) }}">{{ entry.title }}</a></h2>
             <p>{{ entry.creation_date }}</p>
             <a class="btn btn-default" href="{{ request.route_url('edit', id=entry.id) }}" role="button">Edit <i class="fa fa-pencil"></i></a>
-            <hr>
+            {% if not loop.last %}
+                <hr>
+            {% endif %}
         {% endfor %}
     {% else %}
         <p>This journal is empty</p>
