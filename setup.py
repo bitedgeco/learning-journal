@@ -14,7 +14,7 @@ requires = [
     'pyramid_jinja2',
     'pyramid_debugtoolbar',
     'waitress',
-    ]
+]
 
 tests_require = [
     'WebTest >= 1.3.1',  # py3 compat
@@ -22,7 +22,7 @@ tests_require = [
     'pytest-cov',
     'tox',
     'pytest-watch',
-    ]
+]
 
 setup(name='learning-journal',
       version='0.0',

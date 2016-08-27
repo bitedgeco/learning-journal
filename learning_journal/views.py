@@ -30,4 +30,4 @@ def edit_view(request):
 
 @view_config(route_name='new', renderer='templates/new.jinja2')
 def new_list_view(request):
-    return {"entries": ENTRIES}
+    return {}
