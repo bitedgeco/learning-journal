@@ -4,7 +4,7 @@
     {% if entries %}
         {% for entry in entries %}
             <h2><a href="{{ request.route_url('detail', id=entry.id) }}">{{ entry.title }}</a></h2>
-            <p>{{ entry.creation_date }}</p>
+            <p>{{ entry.date }}</p>
             <a class="btn btn-default" href="{{ request.route_url('edit', id=entry.id) }}" role="button">Edit <i class="fa fa-pencil"></i></a>
             {% if not loop.last %}
                 <hr>

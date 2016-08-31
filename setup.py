@@ -10,9 +10,12 @@ with open(os.path.join(here, 'CHANGES.txt')) as f:
 
 requires = [
     'pyramid',
-    # 'pyramid_chameleon',
     'pyramid_jinja2',
     'pyramid_debugtoolbar',
+    'pyramid_tm',
+    'SQLAlchemy',
+    'transaction',
+    'zope.sqlalchemy',
     'waitress',
     ]
 
@@ -20,13 +23,11 @@ tests_require = [
     'WebTest >= 1.3.1',  # py3 compat
     'pytest',  # includes virtualenv
     'pytest-cov',
-    'tox',
-    'pytest-watch',
     ]
 
-setup(name='learning-journal',
+setup(name='lj-step3',
       version='0.0',
-      description='learning-journal',
+      description='lj-step3',
       long_description=README + '\n\n' + CHANGES,
       classifiers=[
           "Programming Language :: Python",
@@ -34,10 +35,10 @@ setup(name='learning-journal',
           "Topic :: Internet :: WWW/HTTP",
           "Topic :: Internet :: WWW/HTTP :: WSGI :: Application",
       ],
-      author='Bitedge',
-      author_email='info@bitedge.co',
+      author='',
+      author_email='',
       url='',
-      keywords='web pyramid pylons',
+      keywords='web wsgi bfg pylons pyramid',
       packages=find_packages(),
       include_package_data=True,
       zip_safe=False,
@@ -47,6 +48,8 @@ setup(name='learning-journal',
       install_requires=requires,
       entry_points="""\
       [paste.app_factory]
-      main = learning_journal:main
+      main = lj_step3:main
+      [console_scripts]
+      initialize_db = lj_step3.scripts.initializedb:main
       """,
       )
