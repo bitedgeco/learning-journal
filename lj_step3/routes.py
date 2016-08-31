@@ -5,4 +5,3 @@ def includeme(config):
     config.add_route('detail', '/detail/{id:\d+}')
     config.add_route('edit', '/edit/{id:\d+}')
     config.add_route('new', '/new')
-
