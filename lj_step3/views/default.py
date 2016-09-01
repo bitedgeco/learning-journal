@@ -9,6 +9,7 @@ from pyramid.httpexceptions import HTTPFound
 
 @view_config(route_name='home', renderer='templates/home.jinja2')
 def home_view(request):
+    # import pdb; pdb.set_trace()
     try:
         query = request.dbsession.query(Entry)
         all_entries = query.order_by(desc(Entry.date)).all()
@@ -19,21 +20,22 @@ def home_view(request):
 
 @view_config(route_name='detail', renderer='templates/detail.jinja2')
 def detail_view(request):
-    try:
-        query = request.dbsession.query(Entry)
-        single_entry = query.filter_by(id=request.matchdict['id']).first()
-    except DBAPIError:
-        return Response(db_err_msg, content_type='text/plain', status=500)
+    query = request.dbsession.query(Entry)
+    single_entry = query.filter_by(id=request.matchdict['id']).first()
     return {'single_entry': single_entry}
 
 
 @view_config(route_name='edit', renderer='templates/edit.jinja2')
 def edit_view(request):
-    try:
-        query = request.dbsession.query(Entry)
-        edit_entry = query.filter_by(id=request.matchdict['id']).first()
-    except DBAPIError:
-        return Response(db_err_msg, content_type='text/plain', status=500)
+    query = request.dbsession.query(Entry)
+    edit_entry = query.filter_by(id=request.matchdict['id']).first()
+    if request.method == 'POST':
+        # import pdb; pdb.set_trace()
+        edit_entry.title = request.POST["title"]
+        edit_entry.body = request.POST["body"]
+        edit_entry = Entry(title=edit_entry.title, body=edit_entry.body, date=edit_entry.date)
+        return HTTPFound(location=request.route_url('home'))
+
     return {'edit_entry': edit_entry}
 
 
@@ -60,33 +62,6 @@ might be caused by one of the following things:
 After you fix the problem, please restart the Pyramid application to
 try it again.
 """
-
-# from pyramid.response import Response
-# from pyramid.view import view_config
-
-# from sqlalchemy.exc import DBAPIError
-
-
-
-
-# @view_config(route_name='home', renderer='../templates/mytemplate.jinja2')
-# def my_view(request):
-#     try:
-#         query = request.dbsession.query(MyModel)
-#         one = query.filter(MyModel.name == 'one').first()
-#     except DBAPIError:
-#         return Response(db_err_msg, content_type='text/plain', status=500)
-#     return {'one': one, 'project': 'lj-step3'}
-
-
-# @view_config(route_name='edit', renderer="../templates/edit-model.jinja2")
-# def edit_view(request):
-#     import pdb;pdb.set_trace()
-#     data = {"name": "A new form"}
-#     if request.method == "POST":
-#         data["name"] = request.POST["name"]
-
-#     return {"data": data}
 
 
 
