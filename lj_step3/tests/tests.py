@@ -60,6 +60,7 @@ def populated_db(request, sqlengine):
 
 
 def test_model_gets_added(new_session):
+    '''Checks a modle gets put into the DB'''
     assert len(new_session.query(Entry).all()) == 0
     model = Entry(title="Bob", date=datetime.datetime.now(), body='Here is a body')
     new_session.add(model)
@@ -72,6 +73,7 @@ def dummy_request(new_session):
 
 
 def test_my_view(new_session):
+    '''Checks a title we enter to the DB gets output on the homepage'''
     from ..views.default import home_view
     new_session.add(Entry(title="James", date=datetime.datetime.now(), body='Lady lah'))
     new_session.flush()
@@ -91,7 +93,7 @@ def test_detail_view(new_session):
 
 
 def test_new_list_view():
-    """Test create view."""
+    '''Test create view.'''
     from ..views.default import new_list_view
     request = testing.DummyRequest()
     new_list_view(request)
@@ -113,7 +115,7 @@ def test_edit_view(new_session):
 
 @pytest.fixture()
 def testapp(sqlengine):
-    """Setup TestApp."""
+    '''Setup TestApp.'''
     from lj_step3 import main
     app = main({}, **DB_SETTINGS)
     from webtest import TestApp
@@ -121,40 +123,40 @@ def testapp(sqlengine):
 
 
 def test_layout_root_home(testapp, populated_db):
-    """Test layout root of home route."""
+    '''Test layout root of home route.'''
     response = testapp.get('/', status=200)
     assert b'Vic Week 2 Day 5' in response.body
 
 
 def test_layout_root_create(testapp):
-    """Test layout root of create route."""
+    '''Test layout root of create route.'''
     response = testapp.get('/new', status=200)
     assert response.html.find("textarea")
 
 
 def test_layout_root_edit(testapp, populated_db):
-    """Test layout root of edit route."""
+    '''Test layout root of edit route.'''
     response = testapp.get('/edit/1', status=200)
     html = response.html
     assert html.find("h1")
 
 
 def test_layout_root_detail(testapp, populated_db):
-    """Test layout root of detail route."""
+    '''Test layout root of detail route.'''
     response = testapp.get('/detail/1', status=200)
     html = response.html
     assert html.find("p")
 
 
 def test_root_contents_home(testapp, populated_db):
-    """Test contents of root page contain as many <article> as journal entries."""
+    '''Test contents of root page contain as many <article> as journal entries.'''
     response = testapp.get('/', status=200)
     html = response.html
     assert len(html.findAll("h2")) == 1
 
 
 def test_root_contents_detail(testapp, populated_db):
-    """Test contents of detail page contains <p> in detail content."""
+    '''Test contents of detail page contains <p> in detail content.'''
     response = testapp.get('/detail/1', status=200)
     assert b"James is being awesome." in response.body
 
