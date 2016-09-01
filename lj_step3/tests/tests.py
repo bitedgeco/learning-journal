@@ -17,9 +17,7 @@ DB_SETTINGS = {'sqlalchemy.url': 'sqlite:////tmp/testme.sqlite'}
 
 @pytest.fixture(scope="session")
 def sqlengine(request):
-    config = testing.setUp(settings={
-        'sqlalchemy.url': 'sqlite:///:memory:'
-    })
+    config = testing.setUp(settings=DB_SETTINGS)
     config.include("..models")
     settings = config.get_settings()
     engine = get_engine(settings)
@@ -122,10 +120,10 @@ def testapp(sqlengine):
     return TestApp(app)
 
 
-# def test_layout_root_home(testapp, populated_db):
-#     """Test layout root of home route."""
-#     response = testapp.get('/', status=200)
-#     assert b'Vic Week 2 Day 5' in response.body
+def test_layout_root_home(testapp, populated_db):
+    """Test layout root of home route."""
+    response = testapp.get('/', status=200)
+    assert b'Vic Week 2 Day 5' in response.body
 
 
 def test_layout_root_create(testapp):
@@ -141,22 +139,22 @@ def test_layout_root_edit(testapp, populated_db):
     assert html.find("h1")
 
 
-# def test_layout_root_detail(testapp, populated_db):
-#     """Test layout root of detail route."""
-#     response = testapp.get('/1', status=200)
-#     html = response.html
-#     assert html.find("p")
+def test_layout_root_detail(testapp, populated_db):
+    """Test layout root of detail route."""
+    response = testapp.get('/detail/1', status=200)
+    html = response.html
+    assert html.find("p")
 
 
-# def test_root_contents_home(testapp, populated_db):
-#     """Test contents of root page contain as many <article> as journal entries."""
-#     response = testapp.get('/', status=200)
-#     html = response.html
-#     assert len(html.findAll("article")) == 1
+def test_root_contents_home(testapp, populated_db):
+    """Test contents of root page contain as many <article> as journal entries."""
+    response = testapp.get('/', status=200)
+    html = response.html
+    assert len(html.findAll("h2")) == 1
 
 
-# def test_root_contents_detail(testapp, populated_db):
-#     """Test contents of detail page contains <p> in detail content."""
-#     response = testapp.get('/1', status=200)
-#     assert b"James is being awesome." in response.body
+def test_root_contents_detail(testapp, populated_db):
+    """Test contents of detail page contains <p> in detail content."""
+    response = testapp.get('/detail/1', status=200)
+    assert b"James is being awesome." in response.body
 
