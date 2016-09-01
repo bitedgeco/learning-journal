@@ -1,6 +1,5 @@
 from sqlalchemy import (
     Column,
-    # Index,
     Integer,
     Text,
     DateTime,
@@ -15,6 +14,3 @@ class Entry(Base):
     title = Column(Text)
     date = Column(DateTime)
     body = Column(Text)
-
-
-# Index('my_index', MyModel.name, unique=True, mysql_length=255)

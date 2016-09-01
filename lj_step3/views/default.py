@@ -25,7 +25,6 @@ def edit_view(request):
     query = request.dbsession.query(Entry)
     edit_entry = query.filter_by(id=request.matchdict['id']).first()
     if request.method == 'POST':
-        # import pdb; pdb.set_trace()
         edit_entry.title = request.POST["title"]
         edit_entry.body = request.POST["body"]
         edit_entry = Entry(title=edit_entry.title, body=edit_entry.body, date=edit_entry.date)
@@ -39,7 +38,7 @@ def new_list_view(request):
     if request.method == 'POST':
         new = Entry(title=request.POST['title'], date=datetime.datetime.now(), body=request.POST['body'])
         request.dbsession.add(new)
-        return HTTPFound(location='/')
+        return HTTPFound(location=request.route_url('home'))
     return {}
 
 
