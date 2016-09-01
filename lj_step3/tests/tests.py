@@ -12,12 +12,12 @@ from ..models import (
 )
 from ..models.meta import Base
 
+DB_SETTINGS = {'sqlalchemy.url': 'sqlite:////tmp/testme.sqlite'}
+
 
 @pytest.fixture(scope="session")
 def sqlengine(request):
-    config = testing.setUp(settings={
-        'sqlalchemy.url': 'sqlite:///:memory:'
-    })
+    config = testing.setUp(settings=DB_SETTINGS)
     config.include("..models")
     settings = config.get_settings()
     engine = get_engine(settings)
@@ -44,6 +44,21 @@ def new_session(sqlengine, request):
     return session
 
 
+@pytest.fixture(scope="function")
+def populated_db(request, sqlengine):
+    session_factory = get_session_factory(sqlengine)
+    session = get_tm_session(session_factory, transaction.manager)
+
+    with transaction.manager:
+        session.add(Entry(title="Vic Week 2 Day 5", body="This is a test entry, James is being awesome.", date=datetime.datetime.utcnow()))
+
+    def teardown():
+        with transaction.manager:
+            session.query(Entry).delete()
+
+    request.addfinalizer(teardown)
+
+
 def test_model_gets_added(new_session):
     assert len(new_session.query(Entry).all()) == 0
     model = Entry(title="Bob", date=datetime.datetime.now(), body='Here is a body')
@@ -66,7 +81,7 @@ def test_my_view(new_session):
 
 
 def test_detail_view(new_session):
-    '''Checks respons to reques with id 13 contains a title'''
+    '''Checks respons to reques with id 1 contains a the body I added'''
     from ..views.default import detail_view
     request = testing.DummyRequest(dbsession=new_session)
     new_session.add(Entry(title="James", date=datetime.datetime.now(), body='Lady lah'))
@@ -75,27 +90,71 @@ def test_detail_view(new_session):
     assert result['single_entry'].body == 'Lady lah'
 
 
-# *****Tests not yet working ******
-
-# @pytest.fixture()
-# def testapp():
-#     '''makes test app for testing'''
-#     from lj_step3 import main
-#     app = main({})
-#     from webtest import TestApp
-#     return TestApp(app)
+def test_new_list_view():
+    """Test create view."""
+    from ..views.default import new_list_view
+    request = testing.DummyRequest()
+    new_list_view(request)
+    assert request.response.status_code == 200
 
 
-# def test_layout_root(testapp):
-#     '''Test body contains paragraph tags'''
-#     response = testapp.get('/', status=200)
-#     assert b'<p>' in response.body
+def test_edit_view(new_session):
+    '''Checks respons to reques with id 1 contains a the title I added'''
+    from ..views.default import edit_view
+    request = testing.DummyRequest(dbsession=new_session)
+    new_session.add(Entry(title="James", date=datetime.datetime.now(), body='Lady lah'))
+    request.matchdict['id'] = 1
+    result = edit_view(request)
+    assert result['edit_entry'].title == 'James'
 
 
-# def test_root_contents(testapp):
-#     '''Test that the contents of the root page contains as many <h2> tags as journal entries.'''
-#     from .views import ENTRIES
-#     response = testapp.get('/', status=200)
-#     html = response.html
-#     assert len(ENTRIES) == len(html.findAll("h2"))
+# -------Functional Tests----------
+
+
+@pytest.fixture()
+def testapp(sqlengine):
+    """Setup TestApp."""
+    from lj_step3 import main
+    app = main({}, **DB_SETTINGS)
+    from webtest import TestApp
+    return TestApp(app)
+
+
+def test_layout_root_home(testapp, populated_db):
+    """Test layout root of home route."""
+    response = testapp.get('/', status=200)
+    assert b'Vic Week 2 Day 5' in response.body
+
+
+def test_layout_root_create(testapp):
+    """Test layout root of create route."""
+    response = testapp.get('/new', status=200)
+    assert response.html.find("textarea")
+
+
+def test_layout_root_edit(testapp, populated_db):
+    """Test layout root of edit route."""
+    response = testapp.get('/edit/1', status=200)
+    html = response.html
+    assert html.find("h1")
+
+
+def test_layout_root_detail(testapp, populated_db):
+    """Test layout root of detail route."""
+    response = testapp.get('/detail/1', status=200)
+    html = response.html
+    assert html.find("p")
+
+
+def test_root_contents_home(testapp, populated_db):
+    """Test contents of root page contain as many <article> as journal entries."""
+    response = testapp.get('/', status=200)
+    html = response.html
+    assert len(html.findAll("h2")) == 1
+
+
+def test_root_contents_detail(testapp, populated_db):
+    """Test contents of detail page contains <p> in detail content."""
+    response = testapp.get('/detail/1', status=200)
+    assert b"James is being awesome." in response.body
 
