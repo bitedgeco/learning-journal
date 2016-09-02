@@ -8,7 +8,7 @@ from passlib.apps import custom_app_context as pwd_context
 
 def includeme(config):
     """security-related configuration"""
-    auth_secret = os.environ.get('AUTH_SECRET', 'itsaseekrit')
+    auth_secret = os.environ.get('AUTH_SECRET', 'james')
     authn_policy = AuthTktAuthenticationPolicy(
         secret=auth_secret,
         hashalg='sha512'

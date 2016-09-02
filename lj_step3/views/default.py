@@ -7,7 +7,7 @@ from pyramid.httpexceptions import HTTPFound
 from pyramid.security import NO_PERMISSION_REQUIRED
 from pyramid.httpexceptions import HTTPFound
 from pyramid.security import remember, forget
-# from test_transactions.security import check_credentials
+from ..security import check_credentials
 
 
 @view_config(route_name='login', renderer='templates/login.jinja2')
