@@ -98,11 +98,11 @@ def test_detail_view(new_session):
     assert result['single_entry'].body == 'Lady lahfff'
 
 
-def test_new_list_view():
+def test_new_view():
     '''Test create view.'''
-    from ..views.default import new_list_view
+    from ..views.default import new_view
     request = testing.DummyRequest()
-    new_list_view(request)
+    new_view(request)
     assert request.response.status_code == 200
 
 
