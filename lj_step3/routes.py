@@ -5,3 +5,5 @@ def includeme(config):
     config.add_route('detail', '/detail/{id:\d+}')
     config.add_route('edit', '/edit/{id:\d+}')
     config.add_route('new', '/new')
+    config.add_route('login', '/login')
+    config.add_route('logout', '/logout')
