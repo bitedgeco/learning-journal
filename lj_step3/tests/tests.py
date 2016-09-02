@@ -1,6 +1,7 @@
 import pytest
 import transaction
 import datetime
+import os
 
 from pyramid import testing
 
@@ -12,10 +13,15 @@ from ..models import (
 )
 from ..models.meta import Base
 
-DB_SETTINGS = {'sqlalchemy.url': 'sqlite:////tmp/testme.sqlite'}
+DB_SETTINGS = {'sqlalchemy.url': 'postgres://james@localhost:5432/test_lj_step3'}
 
 
 @pytest.fixture(scope="session")
+def setup_test_env():
+    os.environ["DATABASE_URL"] = 'postgres://james@localhost:5432/test_lj_step3'
+
+
+@pytest.fixture(scope="function")
 def sqlengine(request):
     config = testing.setUp(settings=DB_SETTINGS)
     config.include("..models")
@@ -85,11 +91,11 @@ def test_my_view(new_session):
 def test_detail_view(new_session):
     '''Checks respons to reques with id 1 contains a the body I added'''
     from ..views.default import detail_view
+    new_session.add(Entry(title="James", date=datetime.datetime.now(), body='Lady lahfff'))
     request = testing.DummyRequest(dbsession=new_session)
-    new_session.add(Entry(title="James", date=datetime.datetime.now(), body='Lady lah'))
     request.matchdict['id'] = 1
     result = detail_view(request)
-    assert result['single_entry'].body == 'Lady lah'
+    assert result['single_entry'].body == 'Lady lahfff'
 
 
 def test_new_list_view():
@@ -114,7 +120,7 @@ def test_edit_view(new_session):
 
 
 @pytest.fixture()
-def testapp(sqlengine):
+def testapp(sqlengine, setup_test_env):
     '''Setup TestApp.'''
     from lj_step3 import main
     app = main({}, **DB_SETTINGS)
