@@ -1,68 +1,10 @@
-import pytest
-import transaction
-import datetime
 import os
-
+from ..models import Entry
+import pytest
+import datetime
 from pyramid import testing
 
-from ..models import (
-    Entry,
-    get_engine,
-    get_session_factory,
-    get_tm_session,
-)
-from ..models.meta import Base
-
 DB_SETTINGS = {'sqlalchemy.url': 'postgres://james@localhost:5432/test_lj_step3'}
-
-
-@pytest.fixture(scope="session")
-def setup_test_env():
-    os.environ["DATABASE_URL"] = 'postgres://james@localhost:5432/test_lj_step3'
-
-
-@pytest.fixture(scope="function")
-def sqlengine(request):
-    config = testing.setUp(settings=DB_SETTINGS)
-    config.include("..models")
-    settings = config.get_settings()
-    engine = get_engine(settings)
-    Base.metadata.create_all(engine)
-
-    def teardown():
-        testing.tearDown()
-        transaction.abort()
-        Base.metadata.drop_all(engine)
-
-    request.addfinalizer(teardown)
-    return engine
-
-
-@pytest.fixture(scope="function")
-def new_session(sqlengine, request):
-    session_factory = get_session_factory(sqlengine)
-    session = get_tm_session(session_factory, transaction.manager)
-
-    def teardown():
-        transaction.abort()
-
-    request.addfinalizer(teardown)
-    return session
-
-
-@pytest.fixture(scope="function")
-def populated_db(request, sqlengine):
-    session_factory = get_session_factory(sqlengine)
-    session = get_tm_session(session_factory, transaction.manager)
-
-    with transaction.manager:
-        session.add(Entry(title="Vic Week 2 Day 5", body="This is a test entry, James is being awesome.", date=datetime.datetime.utcnow()))
-
-    def teardown():
-        with transaction.manager:
-            session.query(Entry).delete()
-
-    request.addfinalizer(teardown)
 
 
 def test_model_gets_added(new_session):
@@ -136,15 +78,8 @@ def test_layout_root_home(testapp, populated_db):
 
 def test_layout_root_create(testapp):
     '''Test layout root of create route.'''
-    response = testapp.get('/new', status=200)
-    assert response.html.find("textarea")
-
-
-def test_layout_root_edit(testapp, populated_db):
-    '''Test layout root of edit route.'''
-    response = testapp.get('/edit/1', status=200)
-    html = response.html
-    assert html.find("h1")
+    response = testapp.get('/new', status=403)
+    assert response.status_code == 403
 
 
 def test_layout_root_detail(testapp, populated_db):
@@ -166,3 +101,112 @@ def test_root_contents_detail(testapp, populated_db):
     response = testapp.get('/detail/1', status=200)
     assert b"James is being awesome." in response.body
 
+# -----Chris' security tests--------
+
+
+def test_private_view_accessible(auth_app):
+    '''tests if authenticated app can access restricted page.'''
+    response = auth_app.get('/edit/1', status=200)
+    assert response.status_code == 200
+
+
+def test_layout_root__auth_edit(auth_app, populated_db):
+    '''Test layout of edit route.'''
+    response = auth_app.get('/edit/1', status=200)
+    assert response.html.find("h1")
+
+
+def test_layout_root_create_auth(auth_app):
+    '''Test layout root of create route.'''
+    response = auth_app.get('/new', status=200)
+    assert response.html.find("textarea")
+
+
+def test_auth_user_name_exists(auth_env):
+    '''test username exists'''
+    assert os.environ.get('AUTH_USERNAME') is not None
+
+
+def test_auth_username_is_not_empty(auth_env):
+    '''test username is not an empty string'''
+    assert os.environ.get('AUTH_USERNAME') != ''
+
+
+def test_auth_user_pwd_exists(auth_env):
+    '''test password exists'''
+    assert os.environ.get('AUTH_PASSWORD') is not None
+
+
+def test_auth_pwd_is_not_empty(auth_env):
+    '''test password is not an empty string'''
+    assert os.environ.get('AUTH_PASSWORD') != ''
+
+
+def test_cred_is_good(auth_env):
+    '''test check_credentials passes when given good credentials'''
+    from ..security import check_credentials
+    actual_username, actual_password = auth_env
+    assert check_credentials(actual_username, actual_password)
+
+
+def test_pwd_is_bad_fails(auth_env):
+    '''test check_credentials fails when given bad password'''
+    from ..security import check_credentials
+    actual_username, actual_password = auth_env
+    fake_password = actual_password + 'nope'
+    assert not check_credentials(actual_username, fake_password)
+
+
+def test_user_is_bad_fails(auth_env):
+    '''test check_credentials fails when given bad password'''
+    from ..security import check_credentials
+    actual_username, actual_password = auth_env
+    fake_username = actual_username + 'nope'
+    assert not check_credentials(fake_username, actual_password)
+
+
+def test_login_view_succeeds(testapp):
+    '''test check_credentials fails when given bad password'''
+    response = testapp.get('/login')
+    assert response.status_code == 200
+
+
+def test_login_view_post_success(auth_app, auth_env):
+    '''Tests that successfull login redirects'''
+    username, password = auth_env
+    auth_data = {
+        'username': username,
+        'password': password
+    }
+    response = auth_app.post('/login', auth_data, status='3*')
+    assert response.status_code == 302
+
+
+def test_priv_view_success_auth(auth_app):
+    '''tests loged in act can access restricted new page'''
+    response = auth_app.get('/new')
+    assert response.status_code == 200
+
+
+def test_post_log_has_cookie(auth_app, auth_env):
+    '''tests an appropreate cookie exists after login'''
+    username, password = auth_env
+    auth_data = {
+        'username': username,
+        'password': password
+    }
+    response = auth_app.post('/login', auth_data, status='3*')
+    # import pdb; pdb.set_trace()
+    for header_name, header_value in response.headerlist:
+        if header_name == 'Set-Cookie' and header_value.startswith('auth_tkt'):
+            break
+    else:
+        assert False
+
+
+def test_check_fails_if_stored_password_is_plain_txt(auth_env):
+    '''tests password is encrypted'''
+    from ..security import check_credentials
+    actual_username, actual_password = auth_env
+    os.environ['AUTH_PASSWORD'] = actual_password
+    assert not check_credentials(actual_username, actual_password)
