@@ -1,0 +1,3 @@
+[run]
+source = lj_step3
+omit = lj_step3/test*

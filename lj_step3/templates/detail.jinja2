@@ -1,0 +1,10 @@
+{% extends "layout.jinja2" %}
+{% block body %}
+<h1>{{ single_entry.title }}</h1>
+<p>{{ single_entry.date }}</p>
+<hr>
+<p>{{ single_entry.body | safe }}</p>
+{% if request.authenticated_userid %}
+    <a class="btn btn-default" href="{{ request.route_url('edit', id=single_entry.id) }}" role="button">Edit <i class="fa fa-pencil"></i></a>
+{% endif %}
+{% endblock %}

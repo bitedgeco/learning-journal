@@ -1,0 +1,16 @@
+{% extends "layout.jinja2" %}
+{% block body %}
+<h1>Edit entry</h1>
+<p>date created</p>
+<form action="{{ request.route_url('edit', id=edit_entry.id) }}" method="POST">
+    <div class="form-group">
+        <label>Title</label>
+        <input class="form-control" required autofocus name="title" value="{{ edit_entry.title }}">
+    </div>
+    <div class="form-group">
+        <label>Body</label>
+        <textarea class="form-control" rows="6" placeholder="Body of entry to be eddited" name="body" required>{{ edit_entry.body }}</textarea>
+    </div>
+    <button type="submit" class="btn btn-default">Submit</button>
+</form>
+{% endblock %}

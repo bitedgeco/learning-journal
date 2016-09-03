@@ -1,0 +1,18 @@
+{% extends "layout.jinja2" %}
+{% block body %}
+    <h1>James' learning journal</h1>
+    {% if entries %}
+        {% for entry in entries %}
+            <h2><a href="{{ request.route_url('detail', id=entry.id) }}">{{ entry.title }}</a></h2>
+            <p>{{ entry.date }}</p>
+            {% if request.authenticated_userid %}
+                <a class="btn btn-default" href="{{ request.route_url('edit', id=entry.id) }}" role="button">Edit <i class="fa fa-pencil"></i></a>
+            {% endif %}
+            {% if not loop.last %}
+                <hr>
+            {% endif %}
+        {% endfor %}
+    {% else %}
+        <p>This journal is empty</p>
+    {% endif %}
+{% endblock %}
